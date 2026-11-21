@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4K &amp; 8K Ultra-HD Photo + Video Upscaler &amp; Restoration Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], mono: ['JetBrains Mono','monospace'] } } }
+    };
+  </script>
+  <style>
+    .checker-bg{background-color:#090d16;background-image:linear-gradient(45deg,#111827 25%,transparent 25%),linear-gradient(-45deg,#111827 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#111827 75%),linear-gradient(-45deg,transparent 75%,#111827 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
+    ::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:#0f172a}::-webkit-scrollbar-thumb{background:#334155;border-radius:9999px}::-webkit-scrollbar-thumb:hover{background:#475569}
+    .no-select{user-select:none;-webkit-user-select:none}
+    .tab-active{border-color:rgba(99,102,241,0.7);background:rgba(99,102,241,0.15);color:#fff}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-indigo-500/30 selection:text-indigo-200">
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm rounded-xl border border-slate-700/80 bg-slate-900/95 px-4 py-3 text-sm text-slate-100 shadow-2xl backdrop-blur-md transition-all duration-200">
+    <div class="flex items-center gap-2.5">
+      <span class="text-indigo-400">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </span>
+      <span id="toast-msg" class="font-medium">Ready</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/20">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white sm:text-lg">4K &amp; 8K Ultra-HD Studio</h1>
+            <span class="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300">Photo + Video</span>
+          </div>
+          <p class="text-xs text-slate-400">Progressive 4K&rarr;8K SR, EDI + IBP &amp; Tint Color Grading</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <button id="open-python-btn" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-medium text-slate-200 transition hover:border-indigo-500/60 hover:bg-slate-800 sm:text-sm">
+          <svg class="h-4 w-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+          <span>Python Backend (AI Color + Video)</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+
+    <!-- Tab bar -->
+    <div class="mb-5 flex items-center gap-2">
+      <button id="tab-photo" type="button" class="tab-active rounded-xl border border-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition">
+        📷 Photo Upscaler
+      </button>
+      <button id="tab-video" type="button" class="rounded-xl border border-slate-800 bg-slate-950/60 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-900">
+        🎬 Video Upscaler (B&amp;W → color)
+      </button>
+    </div>
+
+    <!-- ================= PHOTO PANEL ================= -->
+    <div id="panel-photo" class="grid w-full grid-cols-1 gap-6 lg:grid-cols-12">
+      <aside class="flex flex-col gap-5 lg:col-span-4">
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">1. Source Image</h2>
+            <button id="load-sample-btn" type="button" class="rounded-lg border border-indigo-500/40 bg-indigo-500/10 px-2.5 py-1 text-xs font-medium text-indigo-300 transition hover:bg-indigo-500/20">
+              Load Detailed Sample
+            </button>
+          </div>
+          <label id="drop-zone" for="file-input" class="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 px-4 py-6 text-center transition hover:border-indigo-500 hover:bg-slate-900">
+            <div class="mb-2.5 flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 text-indigo-400 transition group-hover:scale-105 group-hover:bg-indigo-500/20">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            </div>
+            <p class="text-sm font-medium text-slate-200">Drop old photo here or <span class="text-indigo-400 underline">browse</span></p>
+            <p class="mt-1 text-xs text-slate-500">PNG, JPG, WEBP, BMP &bull; Processed locally</p>
+            <input id="file-input" type="file" accept="image/*" class="hidden" />
+          </label>
+          <div id="source-meta" class="mt-3 hidden items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs">
+            <span id="source-name" class="truncate max-w-[160px] font-medium text-slate-300">sample_vintage.png</span>
+            <span id="source-dims" class="font-mono text-cyan-400">640 × 426 px</span>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">2. SR Engine</h2>
+            <span class="rounded-md bg-slate-800 px-2 py-0.5 font-mono text-[11px] text-cyan-300">IBP + Deconv</span>
+          </div>
+          <div class="space-y-2.5">
+            <label class="algo-card relative flex cursor-pointer items-start gap-3 rounded-xl border border-indigo-500/70 bg-indigo-500/15 p-3 transition" data-algo="edi_ibp">
+              <input type="radio" name="algorithm" value="edi_ibp" checked class="mt-1 h-4 w-4 accent-indigo-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-semibold text-white">Edge-Directed SR + IBP</span>
+                  <span class="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-300">Max Clarity</span>
+                </div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-300">Lanczos-4 + Sobel edge-tangent smoothing + IBP sub-pixel recovery.</p>
+              </div>
+            </label>
+            <label class="algo-card relative flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700" data-algo="lanczos4">
+              <input type="radio" name="algorithm" value="lanczos4" class="mt-1 h-4 w-4 accent-indigo-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-semibold text-white">Lanczos-4 + Deconvolution</span>
+                  <span class="rounded bg-indigo-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-indigo-300">8×8 Sinc</span>
+                </div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Wide 8×8 windowed-sinc kernel (a = 4) + back-projection sharpening.</p>
+              </div>
+            </label>
+            <label class="algo-card relative flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700" data-algo="bicubic">
+              <input type="radio" name="algorithm" value="bicubic" class="mt-1 h-4 w-4 accent-indigo-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm font-semibold text-white">Bicubic Sharp (Catmull-Rom)</span>
+                  <span class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">Portraits</span>
+                </div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">4×4 Catmull-Rom spline with mild residual correction.</p>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-300">3. Resolution &amp; Restore</h2>
+            <span id="mp-badge" class="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[11px] text-cyan-300">8.3 MP • Memory Safe</span>
+          </div>
+
+          <div class="mb-3">
+            <label class="mb-1.5 block text-xs font-medium text-slate-400">Target Ultra-HD Tier</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" data-tier="4k" class="tier-btn rounded-xl border border-indigo-500/70 bg-indigo-500/15 px-3 py-2.5 text-left transition">
+                <div class="flex items-center justify-between"><span class="text-xs font-bold text-white">4K UHD</span><span class="rounded bg-indigo-500/25 px-1.5 py-0.5 font-mono text-[10px] text-indigo-200">3840px</span></div>
+                <div class="mt-0.5 text-[11px] text-slate-300">~8.3 MP &bull; Fast</div>
+              </button>
+              <button type="button" data-tier="8k" class="tier-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700">
+                <div class="flex items-center justify-between"><span class="text-xs font-bold text-white">8K UHD</span><span class="rounded bg-fuchsia-500/25 px-1.5 py-0.5 font-mono text-[10px] text-fuchsia-200">7680px</span></div>
+                <div class="mt-0.5 text-[11px] text-slate-400">~33.2 MP &bull; 2-Stage</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="mb-1.5 block text-xs font-medium text-slate-400">Framing</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" data-fit="fit" class="fit-btn rounded-xl border border-indigo-500/60 bg-indigo-500/15 px-3 py-2.5 text-left transition">
+                <div id="fit-aspect-title" class="text-xs font-semibold text-white">Aspect 4K (3840px)</div>
+                <div id="fit-aspect-sub" class="text-[11px] text-slate-300">Longest edge = 3840 px</div>
+              </button>
+              <button type="button" data-fit="cover" class="fit-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700">
+                <div id="fit-exact-title" class="text-xs font-semibold text-slate-200">Exact 3840×2160</div>
+                <div id="fit-exact-sub" class="text-[11px] text-slate-400">16:9 UHD full frame</div>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3.5 grid grid-cols-2 gap-2.5">
+            <div>
+              <label for="synthesis-profile" class="mb-1 block text-[11px] font-medium text-slate-400">Texture Synthesis</label>
+              <select id="synthesis-profile" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs font-medium text-slate-200 focus:border-indigo-500 focus:outline-none">
+                <option value="natural">Natural (Smooth)</option>
+                <option value="crisp" selected>Crisp (Balanced)</option>
+                <option value="maximum">Maximum Micro-Detail</option>
+              </select>
+            </div>
+            <div>
+              <label for="ibp-passes" class="mb-1 block text-[11px] font-medium text-slate-400">IBP Passes</label>
+              <select id="ibp-passes" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs font-medium text-slate-200 focus:border-indigo-500 focus:outline-none">
+                <option value="1">1 (Fastest)</option>
+                <option value="2" selected>2 (Recommended)</option>
+                <option value="3">3 (Ultra-Sharp)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-3.5 rounded-xl border border-slate-800 bg-slate-950/60 p-3.5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-1.5"><span class="text-sm font-medium text-white">Vintage Color &amp; Contrast Fix</span><span class="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">Auto-WB</span></div>
+                <p class="mt-0.5 text-xs text-slate-400">Neutralizes sepia cast &amp; restores dynamic range.</p>
+              </div>
+              <label class="relative inline-flex cursor-pointer items-center">
+                <input id="restore-toggle" type="checkbox" checked class="peer sr-only" />
+                <div class="h-6 w-11 rounded-full bg-slate-700 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-indigo-500 peer-checked:after:translate-x-full"></div>
+              </label>
+            </div>
+            <div class="border-t border-slate-800/80 pt-3">
+              <div class="flex justify-between text-xs"><span class="text-slate-300">Film Grain Denoise</span><span id="denoise-label" class="font-mono text-cyan-300">40%</span></div>
+              <input id="denoise-strength" type="range" min="0" max="100" value="40" class="mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-800 accent-cyan-500" />
+            </div>
+            <div class="border-t border-slate-800/80 pt-3">
+              <div class="flex justify-between text-xs"><span class="text-slate-300">Micro-Detail &amp; Edge Acutance</span><span id="strength-label" class="font-mono text-indigo-300">75%</span></div>
+              <input id="restore-strength" type="range" min="0" max="100" value="75" class="mt-1.5 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-800 accent-indigo-500" />
+            </div>
+          </div>
+
+          <div class="mt-5">
+            <button id="upscale-btn" type="button" class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition hover:from-indigo-500 hover:to-cyan-500 disabled:cursor-not-allowed disabled:opacity-50">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span id="upscale-btn-text">Reconstruct True 4K Image</span>
+            </button>
+            <div id="progress-container" class="mt-3 hidden">
+              <div class="mb-1 flex items-center justify-between text-xs">
+                <span id="progress-stage" class="text-slate-300">Computing...</span>
+                <span id="progress-pct" class="font-mono text-cyan-400">0%</span>
+              </div>
+              <div class="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div id="progress-bar" class="h-full w-0 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-150"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="flex flex-col gap-4 lg:col-span-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span class="text-slate-400">Input:</span><span id="stat-in" class="ml-1 font-mono font-medium text-slate-200">—</span></div>
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span id="stat-out-label" class="text-slate-400">Output:</span><span id="stat-out" class="ml-1 font-mono font-medium text-emerald-400">—</span></div>
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span class="text-slate-400">Engine:</span><span id="stat-time" class="ml-1 font-mono font-medium text-indigo-300">—</span></div>
+          </div>
+          <div class="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-950 p-1">
+            <button type="button" data-zoom="fit" class="zoom-btn rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white transition">Fit</button>
+            <button type="button" data-zoom="1" class="zoom-btn rounded-lg px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:text-white">100%</button>
+            <button type="button" data-zoom="2" class="zoom-btn rounded-lg px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:text-white">200%</button>
+            <button type="button" data-zoom="4" class="zoom-btn rounded-lg px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:text-white">400% Peep</button>
+          </div>
+        </div>
+
+        <div id="viewport-wrapper" class="checker-bg relative flex min-h-[420px] flex-1 items-center justify-center overflow-auto rounded-2xl border border-slate-800 shadow-2xl sm:min-h-[520px]">
+          <div id="empty-state" class="max-w-md px-6 py-12 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-indigo-400">
+              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="text-base font-semibold text-white">No Image Loaded Yet</h3>
+            <p class="mt-1.5 text-xs leading-relaxed text-slate-400">Upload a photo or click <strong>"Load Detailed Sample"</strong>.</p>
+          </div>
+          <div id="compare-stage" class="no-select relative hidden overflow-hidden rounded-lg shadow-2xl cursor-ew-resize">
+            <canvas id="canvas-after" class="block max-w-none"></canvas>
+            <div id="before-clip" class="absolute inset-y-0 left-0 overflow-hidden" style="width: 50%;">
+              <canvas id="canvas-before" class="block max-w-none"></canvas>
+            </div>
+            <div class="pointer-events-none absolute left-3 top-3 rounded-lg border border-slate-700/80 bg-slate-950/80 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-300 backdrop-blur">Original (Raw Pixels)</div>
+            <div id="after-badge" class="pointer-events-none absolute right-3 top-3 rounded-lg border border-indigo-500/50 bg-indigo-950/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-200 backdrop-blur">4K Lanczos-3</div>
+            <div id="split-divider" class="absolute inset-y-0 z-20 w-0.5 cursor-ew-resize bg-white shadow-[0_0_12px_rgba(0,0,0,0.9)]" style="left: 50%;">
+              <div class="absolute left-1/2 top-1/2 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-indigo-600 text-white shadow-xl">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 9l-3 3 3 3m8-6l3 3-3 3"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3.5">
+          <div class="text-xs text-slate-400">Drag the center handle left/right to inspect edge sharpness.</div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button id="download-jpg-btn" type="button" disabled class="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm">
+              <span id="download-jpg-label">Download 4K JPEG (96%)</span>
+            </button>
+            <button id="download-png-btn" type="button" disabled class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm">
+              <span id="download-png-label">Download 4K PNG (Lossless)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= VIDEO PANEL ================= -->
+    <div id="panel-video" class="hidden grid-cols-1 gap-6 lg:grid-cols-12">
+      <aside class="flex flex-col gap-5 lg:col-span-4">
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-300">1. Source Video</h2>
+          <label id="video-drop-zone" for="video-input" class="group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 bg-slate-950/60 px-4 py-6 text-center transition hover:border-fuchsia-500 hover:bg-slate-900">
+            <div class="mb-2.5 flex h-11 w-11 items-center justify-center rounded-full bg-slate-800 text-fuchsia-400 transition group-hover:scale-105 group-hover:bg-fuchsia-500/20">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </div>
+            <p class="text-sm font-medium text-slate-200">Drop old video here or <span class="text-fuchsia-400 underline">browse</span></p>
+            <p class="mt-1 text-xs text-slate-500">MP4, WebM, MOV, MKV &bull; Chromebook-friendly</p>
+            <input id="video-input" type="file" accept="video/*" class="hidden" />
+          </label>
+          <div id="video-meta" class="mt-3 hidden items-center justify-between rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs">
+            <span id="video-name" class="truncate max-w-[160px] font-medium text-slate-300">old_film.mp4</span>
+            <span id="video-info" class="font-mono text-fuchsia-400">—</span>
+          </div>
+          <p class="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-[11px] leading-relaxed text-amber-200">
+            ⚠️ <strong>Browser-only pipeline.</strong> Expect ~0.5–2 fps at 8K, ~3–8 fps at 4K. Output duration will match processing wall-clock time. For real AI 8K + AI colorization, use the Python backend (top-right).
+          </p>
+        </section>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-300">2. Output Resolution</h2>
+          <div class="mb-3 grid grid-cols-2 gap-2">
+            <button type="button" data-vtier="4k" class="vtier-btn rounded-xl border border-indigo-500/70 bg-indigo-500/15 px-3 py-2.5 text-left transition">
+              <div class="flex items-center justify-between"><span class="text-xs font-bold text-white">4K</span><span class="rounded bg-indigo-500/25 px-1.5 py-0.5 font-mono text-[10px] text-indigo-200">3840px</span></div>
+              <div class="mt-0.5 text-[11px] text-slate-300">~8.3 MP/frame</div>
+            </button>
+            <button type="button" data-vtier="8k" class="vtier-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700">
+              <div class="flex items-center justify-between"><span class="text-xs font-bold text-white">8K</span><span class="rounded bg-fuchsia-500/25 px-1.5 py-0.5 font-mono text-[10px] text-fuchsia-200">7680px</span></div>
+              <div class="mt-0.5 text-[11px] text-slate-400">~33.2 MP/frame</div>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="mb-1 block text-[11px] font-medium text-slate-400">Frame Skip</label>
+              <select id="video-frameskip" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs font-medium text-slate-200 focus:border-fuchsia-500 focus:outline-none">
+                <option value="1">Every frame (slowest)</option>
+                <option value="2" selected>Every 2nd frame</option>
+                <option value="4">Every 4th frame</option>
+                <option value="8">Every 8th frame (fastest)</option>
+              </select>
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-medium text-slate-400">Max Duration</label>
+              <select id="video-maxdur" class="w-full rounded-xl border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs font-medium text-slate-200 focus:border-fuchsia-500 focus:outline-none">
+                <option value="3">3 seconds</option>
+                <option value="5">5 seconds</option>
+                <option value="10" selected>10 seconds</option>
+                <option value="30">30 seconds</option>
+                <option value="60">60 seconds</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-300">3. B&amp;W → Color</h2>
+          <div class="space-y-2.5">
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700">
+              <input type="radio" name="colormode" value="preserve" checked class="mt-1 h-4 w-4 accent-fuchsia-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between"><span class="text-sm font-semibold text-white">Preserve Original</span><span class="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-slate-300">No change</span></div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Keep the source as-is. Best for already-color footage.</p>
+              </div>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700">
+              <input type="radio" name="colormode" value="sepia" class="mt-1 h-4 w-4 accent-fuchsia-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between"><span class="text-sm font-semibold text-white">Sepia Tint</span><span class="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-300">Vintage</span></div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Classic warm brown monochrome tone.</p>
+              </div>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700">
+              <input type="radio" name="colormode" value="warm" class="mt-1 h-4 w-4 accent-fuchsia-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between"><span class="text-sm font-semibold text-white">Warm Tone</span><span class="rounded bg-orange-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-orange-300">Natural</span></div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Slight amber, skin-friendly warmth.</p>
+              </div>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700">
+              <input type="radio" name="colormode" value="cool" class="mt-1 h-4 w-4 accent-fuchsia-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between"><span class="text-sm font-semibold text-white">Cool Duotone</span><span class="rounded bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-cyan-300">Cinematic</span></div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Deep blue shadows, cool highlights.</p>
+              </div>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700">
+              <input type="radio" name="colormode" value="split" class="mt-1 h-4 w-4 accent-fuchsia-500" />
+              <div class="flex-1">
+                <div class="flex items-center justify-between"><span class="text-sm font-semibold text-white">Split-Tone</span><span class="rounded bg-pink-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-pink-300">Teal &amp; Orange</span></div>
+                <p class="mt-1 text-xs leading-relaxed text-slate-400">Cool shadows + warm highlights — modern cinematic.</p>
+              </div>
+            </label>
+            <div class="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/5 p-3">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5"><span class="text-sm font-semibold text-white">AI Colorize (True Color)</span><span class="rounded bg-fuchsia-500/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-fuchsia-300">Backend</span></div>
+              </div>
+              <p class="mt-1 text-xs leading-relaxed text-slate-400">
+                Real photorealistic colorization needs a trained model. Click the <strong>Python Backend</strong> button (top-right) for a working OpenCV DNN colorizer + ffmpeg video pipeline you can run locally.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-xl sm:p-5">
+          <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-300">4. Process</h2>
+          <button id="video-process-btn" type="button" disabled class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-pink-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-fuchsia-600/25 transition hover:from-fuchsia-500 hover:to-pink-500 disabled:cursor-not-allowed disabled:opacity-50">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span id="video-process-btn-text">Upscale &amp; Colorize Video</span>
+          </button>
+          <div id="video-progress-container" class="mt-3 hidden">
+            <div class="mb-1 flex items-center justify-between text-xs">
+              <span id="video-progress-stage" class="text-slate-300">Preparing...</span>
+              <span id="video-progress-pct" class="font-mono text-fuchsia-400">0%</span>
+            </div>
+            <div class="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+              <div id="video-progress-bar" class="h-full w-0 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-400 transition-all duration-150"></div>
+            </div>
+            <div id="video-eta" class="mt-1 text-[11px] text-slate-500">ETA: —</div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="flex flex-col gap-4 lg:col-span-8">
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3">
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span class="text-slate-400">Video In:</span><span id="video-stat-in" class="ml-1 font-mono font-medium text-slate-200">—</span></div>
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span class="text-slate-400">Video Out:</span><span id="video-stat-out" class="ml-1 font-mono font-medium text-emerald-400">—</span></div>
+            <div class="rounded-lg border border-slate-800 bg-slate-950 px-2.5 py-1.5"><span class="text-slate-400">Frames:</span><span id="video-stat-frames" class="ml-1 font-mono font-medium text-indigo-300">—</span></div>
+          </div>
+        </div>
+
+        <div id="video-viewport" class="checker-bg relative flex min-h-[420px] flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-800 shadow-2xl sm:min-h-[520px]">
+          <div id="video-empty-state" class="max-w-md px-6 py-12 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-fuchsia-400">
+              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </div>
+            <h3 class="text-base font-semibold text-white">No Video Loaded Yet</h3>
+            <p class="mt-1.5 text-xs leading-relaxed text-slate-400">Upload a video to begin. The pipeline runs frame-by-frame, split between raw pixels (left) and upscaled + tinted result (right).</p>
+          </div>
+          <video id="video-preview" class="hidden max-h-[520px] max-w-full rounded-lg shadow-2xl" controls playsinline></video>
+          <div id="video-processing-preview" class="hidden w-full max-w-[90%]">
+            <div class="relative overflow-hidden rounded-lg shadow-2xl">
+              <canvas id="video-preview-before" class="block w-full"></canvas>
+              <canvas id="video-preview-after" class="absolute inset-0 block h-full w-full"></canvas>
+              <div class="pointer-events-none absolute left-3 top-3 rounded-lg border border-slate-700/80 bg-slate-950/80 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-300 backdrop-blur">Live Input Frame</div>
+              <div class="pointer-events-none absolute right-3 top-3 rounded-lg border border-fuchsia-500/50 bg-fuchsia-950/85 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-fuchsia-200 backdrop-blur">Upscaled Output Frame</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3.5">
+          <div class="text-xs text-slate-400">Browser output is <strong>WebM (VP9)</strong>. Use the Python backend for MP4/AI colorization.</div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button id="video-download-btn" type="button" disabled class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-40 sm:text-sm">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span id="video-download-label">Download Upscaled Video (.webm)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============= PYTHON MODAL ============= -->
+  <div id="python-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+    <div class="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 px-5 py-4">
+        <div>
+          <h3 class="text-base font-bold text-white">Local Python Flask Backend (<code class="font-mono text-indigo-400">app.py</code>)</h3>
+          <p class="text-xs text-slate-400">Photo + Video upscaling + AI colorization. Chromebook Linux friendly.</p>
+        </div>
+        <button id="close-python-btn" type="button" class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-white">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <div class="rounded-xl border border-slate-800 bg-slate-950 p-3.5 text-xs text-slate-300">
+          <div class="mb-1.5 font-semibold text-amber-300">Quick Setup:</div>
+          <code class="block font-mono text-cyan-300">pip install flask pillow opencv-python-headless numpy imageio imageio-ffmpeg &amp;&amp; python3 app.py</code>
+          <div class="mt-2 text-[11px] text-slate-400">For true AI colorization, optionally: <code class="font-mono text-fuchsia-300">pip install opencv-contrib-python-headless</code> and download the Zhang et al. colorization model (see comments).</div>
+        </div>
+        <div class="relative">
+          <button id="copy-python-btn" type="button" class="absolute right-3 top-3 rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:bg-indigo-600 hover:border-indigo-500 hover:text-white">Copy Code</button>
+          <pre class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-200"><code id="python-code-block">"""
+Local 4K/8K Photo + Video Upscaler with AI Colorization
+-------------------------------------------------------
+pip install flask pillow opencv-python-headless numpy imageio imageio-ffmpeg
+Optional AI colorization:  pip install opencv-contrib-python-headless
+Model (Zhang et al. 2016): place colorization_release_v2.caffemodel,
+  colorization_deploy_v2.prototxt, pts_in_hull.npy in ./models/
+  Download from: https://github.com/richzhang/colorization
+"""
+import io, os, tempfile, subprocess
+import cv2
+import numpy as np
+from flask import Flask, request, send_file, jsonify
+from PIL import Image
+
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024 * 1024  # 2 GB
+TIER_SPECS = {"4k": {"long_edge": 3840, "w": 3840, "h": 2160},
+              "8k": {"long_edge": 7680, "w": 7680, "h": 4320}}
+
+# ---- Optional AI colorizer (Zhang et al. 2016) ----
+_colornet = None
+def _load_colornet():
+    global _colornet
+    if _colornet is not None:
+        return _colornet
+    try:
+        proto  = "models/colorization_deploy_v2.prototxt"
+        model  = "models/colorization_release_v2.caffemodel"
+        hull   = "models/pts_in_hull.npy"
+        if not (os.path.exists(proto) and os.path.exists(model) and os.path.exists(hull)):
+            return None
+        net = cv2.dnn.readNetFromCaffe(proto, model)
+        pts = np.load(hull).transpose().reshape(2, 313, 1, 1)
+        net.getLayer(net.getLayerId("class8_ab")).blobs = [pts.astype(np.float32)]
+        net.getLayer(net.getLayerId("conv8_313_rh")).blobs = [np.full([1, 313], 2.606, np.float32)]
+        _colornet = net
+        return net
+    except Exception as e:
+        print("Colorizer unavailable:", e)
+        return None
+
+def ai_colorize(bgr: np.ndarray) -> np.ndarray:
+    """True AI colorization. Returns original if model not loaded."""
+    net = _load_colornet()
+    if net is None:
+        return bgr
+    h, w = bgr.shape[:2]
+    scale = min(1.0, 512.0 / max(h, w))
+    if scale < 1.0:
+        small = cv2.resize(bgr, (int(w*scale), int(h*scale)), interpolation=cv2.INTER_AREA)
+    else:
+        small = bgr
+    lab = cv2.cvtColor(small.astype(np.float32) / 255.0, cv2.COLOR_BGR2LAB)
+    L = lab[:, :, 0] - 50.0
+    net.setInput(cv2.dnn.blobFromImage(L))
+    ab = net.forward()[0].transpose((1, 2, 0))
+    ab = cv2.resize(ab, (small.shape[1], small.shape[0]))
+    L_full = cv2.cvtColor(small.astype(np.float32) / 255.0, cv2.COLOR_BGR2LAB)[:, :, 0]
+    lab_out = np.concatenate((L_full[:, :, None], ab), axis=2)
+    bgr_small = (cv2.cvtColor(lab_out, cv2.COLOR_LAB2BGR) * 255.0).clip(0, 255).astype(np.uint8)
+    return cv2.resize(bgr_small, (w, h), interpolation=cv2.INTER_CUBIC)
+
+# ---- Classical SR pipeline (identical to browser) ----
+def neutralize_cast_and_denoise(bgr, denoise_strength, fix_color):
+    out = bgr.copy()
+    if denoise_strength > 0.02:
+        sc = int(12 + denoise_strength * 42); ss = int(3 + denoise_strength * 5)
+        out = cv2.bilateralFilter(out, d=5, sigmaColor=sc, sigmaSpace=ss)
+    if fix_color:
+        result = np.empty_like(out)
+        for c in range(3):
+            lo, hi = np.percentile(out[:, :, c], (1.5, 98.5))
+            if hi - lo > 25:
+                st = np.clip((out[:, :, c].astype(np.float32) - lo) * (255.0 / (hi - lo)), 0, 255)
+                result[:, :, c] = (0.4 * out[:, :, c] + 0.6 * st).astype(np.uint8)
+            else:
+                result[:, :, c] = out[:, :, c]
+        out = result
+    return out
+
+def edge_directed_smoothing(bgr):
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    gx = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3)
+    gy = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
+    mag = np.hypot(gx, gy); mask = (mag > 28.0)[:, :, None]
+    smoothed = cv2.edgePreservingFilter(bgr, flags=1, sigma_s=18, sigma_r=0.22)
+    return np.where(mask, (0.45 * bgr + 0.55 * smoothed).astype(np.uint8), bgr)
+
+def synthesize_ibp(hr_bgr, ref_bgr, clarity, synth_gain, iterations=2):
+    src_h, src_w = ref_bgr.shape[:2]; hr_h, hr_w = hr_bgr.shape[:2]
+    est = hr_bgr.astype(np.float32); ref = ref_bgr.astype(np.float32)
+    gain = 0.35 + clarity * 0.65
+    for _ in range(iterations):
+        sim = cv2.resize(est, (src_w, src_h), interpolation=cv2.INTER_AREA)
+        res = cv2.resize(ref - sim, (hr_w, hr_h), interpolation=cv2.INTER_LANCZOS4)
+        est = np.clip(est + gain * res, 0, 255)
+    if clarity <= 0.01: return est.astype(np.uint8)
+    u8 = est.astype(np.uint8)
+    b1 = cv2.GaussianBlur(u8, (0, 0), 1.0).astype(np.float32)
+    b2 = cv2.GaussianBlur(u8, (0, 0), 2.2).astype(np.float32)
+    f = u8.astype(np.float32)
+    hi = (f - b1) * (0.65 * clarity * synth_gain)
+    mid = (b1 - b2) * (0.35 * clarity * synth_gain)
+    edge = np.clip(np.abs(f - b2) / 18.0, 0.15, 1.25)
+    sharp = f + (hi + mid) * edge
+    k = np.ones((3, 3), np.uint8)
+    lo = cv2.erode(u8, k).astype(np.float32); hi_ = cv2.dilate(u8, k).astype(np.float32)
+    return np.clip(np.clip(sharp, lo - 6.0, hi_ + 6.0), 0, 255).astype(np.uint8)
+
+def target_size(w, h, tier, mode):
+    spec = TIER_SPECS[tier]
+    if mode == "cover": return spec["w"], spec["h"]
+    s = spec["long_edge"] / max(w, h)
+    return max(1, round(w * s)), max(1, round(h * s))
+
+def upscale_frame(bgr, tier="8k", mode="fit", algo="edi_ibp", fix_color=True,
+                  denoise=0.40, clarity=0.75, ibp_passes=2, synth_gain=1.0):
+    if mode == "cover":
+        h, w = bgr.shape[:2]; tr = 16.0 / 9.0
+        if (w / h) > tr:
+            nw = int(h * tr); bgr = bgr[:, (w - nw) // 2:(w - nw) // 2 + nw]
+        elif (w / h) < tr:
+            nh = int(w / tr); bgr = bgr[(h - nh) // 2:(h - nh) // 2 + nh, :]
+    clean = neutralize_cast_and_denoise(bgr, denoise, fix_color)
+    interp = cv2.INTER_CUBIC if algo == "bicubic" else cv2.INTER_LANCZOS4
+    if tier == "8k":
+        w4, h4 = target_size(clean.shape[1], clean.shape[0], "4k", mode)
+        s4 = cv2.resize(clean, (w4, h4), interpolation=interp)
+        if algo == "edi_ibp": s4 = edge_directed_smoothing(s4)
+        s4 = synthesize_ibp(s4, clean, clarity * 0.85, synth_gain * 0.85, ibp_passes)
+        w8, h8 = target_size(clean.shape[1], clean.shape[0], "8k", mode)
+        s8 = cv2.resize(s4, (w8, h8), interpolation=interp)
+        return synthesize_ibp(s8, s4, clarity, synth_gain, max(1, ibp_passes - 1))
+    w4, h4 = target_size(clean.shape[1], clean.shape[0], "4k", mode)
+    s4 = cv2.resize(clean, (w4, h4), interpolation=interp)
+    if algo == "edi_ibp": s4 = edge_directed_smoothing(s4)
+    return synthesize_ibp(s4, clean, clarity, synth_gain, ibp_passes)
+
+# ---- Routes ----
+@app.route("/api/upscale-uhd", methods=["POST"])
+def upscale_uhd():
+    if "image" not in request.files: return jsonify({"error": "No image"}), 400
+    file = request.files["image"]
+    tier       = request.form.get("target_res", "8k").lower()
+    algo       = request.form.get("algorithm", "edi_ibp").lower()
+    mode       = request.form.get("fit_mode", "fit").lower()
+    fix_color  = request.form.get("restore", "true").lower() == "true"
+    denoise    = float(request.form.get("denoise", 0.40))
+    clarity    = float(request.form.get("strength", 0.75))
+    passes     = int(request.form.get("ibp_passes", 2))
+    profile    = request.form.get("synthesis_profile", "crisp").lower()
+    colorize   = request.form.get("colorize", "false").lower() == "true"
+    gain = {"natural": 0.70, "crisp": 1.0, "maximum": 1.35}.get(profile, 1.0)
+    pil = Image.open(file.stream).convert("RGB")
+    bgr = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
+    out = upscale_frame(bgr, tier, mode, algo, fix_color, denoise, clarity, passes, gain)
+    if colorize: out = ai_colorize(out)
+    buf = io.BytesIO()
+    Image.fromarray(cv2.cvtColor(out, cv2.COLOR_BGR2RGB)).save(buf, "PNG", optimize=True)
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png", download_name=f"upscaled_{tier}.png")
+
+@app.route("/api/upscale-video", methods=["POST"])
+def upscale_video():
+    """
+    Accepts a video, processes frame-by-frame with the SR pipeline,
+    optionally AI-colorizes, writes to MP4 (H.264) via ffmpeg.
+    """
+    if "video" not in request.files: return jsonify({"error": "No video"}), 400
+    file       = request.files["video"]
+    tier       = request.form.get("target_res", "4k").lower()
+    algo       = request.form.get("algorithm", "edi_ibp").lower()
+    fix_color  = request.form.get("restore", "true").lower() == "true"
+    denoise    = float(request.form.get("denoise", 0.40))
+    clarity    = float(request.form.get("strength", 0.75))
+    passes     = int(request.form.get("ibp_passes", 2))
+    max_dur    = float(request.form.get("max_duration", 10))
+    skip       = max(1, int(request.form.get("frame_skip", 1)))
+    colorize   = request.form.get("colorize", "false").lower() == "true"
+    gain       = {"natural": 0.70, "crisp": 1.0, "maximum": 1.35}.get(
+                     request.form.get("synthesis_profile", "crisp").lower(), 1.0)
+
+    tmp_in  = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+    file.save(tmp_in.name); tmp_in.close()
+    tmp_out = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False); tmp_out.close()
+
+    cap = cv2.VideoCapture(tmp_in.name)
+    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    src_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)); src_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    out_w, out_h = target_size(src_w, src_h, tier, "fit")
+
+    # ffmpeg H.264 writer (better than cv2.VideoWriter for 8K)
+    ffmpeg_cmd = [
+        "ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
+        "-pix_fmt", "bgr24", "-s", f"{out_w}x{out_h}", "-r", str(fps / skip),
+        "-i", "-", "-an", "-c:v", "libx264", "-preset", "medium",
+        "-crf", "18", "-pix_fmt", "yuv420p", tmp_out.name
+    ]
+    proc = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+
+    processed = 0
+    idx = 0
+    max_frames = int(max_dur * fps)
+    try:
+        while idx < max_frames:
+            ok, frame = cap.read()
+            if not ok: break
+            if idx % skip == 0:
+                out = upscale_frame(frame, tier, "fit", algo, fix_color,
+                                    denoise, clarity, passes, gain)
+                if colorize: out = ai_colorize(out)
+                if out.shape[1] != out_w or out.shape[0] != out_h:
+                    out = cv2.resize(out, (out_w, out_h))
+                proc.stdin.write(out.tobytes())
+                processed += 1
+            idx += 1
+    finally:
+        cap.release(); proc.stdin.close(); proc.wait()
+        try: os.unlink(tmp_in.name)
+        except OSError: pass
+
+    return send_file(tmp_out.name, mimetype="video/mp4",
+                     as_attachment=True, download_name=f"upscaled_{tier}.mp4")
+
+if __name__ == "__main__":
+    os.makedirs("models", exist_ok=True)
+    app.run(host="127.0.0.1", port=5000, debug=False)
+</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= WORKER ============= -->
+  <script id="upscale-worker" type="javascript/worker">
+    function sinc(x){ if(x===0) return 1; const p=Math.PI*x; return Math.sin(p)/p; }
+    function lanczos4Kernel(x){ const ax=Math.abs(x); if(ax>=4) return 0; return sinc(x)*sinc(x*0.25); }
+    function bicubicKernel(x){ const ax=Math.abs(x), a=-0.5; if(ax<=1) return (a+2)*ax*ax*ax-(a+3)*ax*ax+1; if(ax<2) return a*ax*ax*ax-5*a*ax*ax+8*a*ax-4*a; return 0; }
+
+    function buildContributorTable(srcSize, dstSize, useBicubic){
+      const baseRadius = useBicubic ? 2 : 4;
+      const kernelFn = useBicubic ? bicubicKernel : lanczos4Kernel;
+      const scale = dstSize / srcSize;
+      const filterScale = scale < 1 ? 1/scale : 1;
+      const radius = baseRadius * filterScale;
+      const maxTaps = Math.ceil(radius * 2) + 2;
+      const indices = new Int32Array(dstSize * maxTaps);
+      const weights = new Float32Array(dstSize * maxTaps);
+      const counts = new Uint8Array(dstSize);
+      for (let dst = 0; dst < dstSize; dst++){
+        const center = (dst + 0.5) / scale - 0.5;
+        const left = Math.floor(center - radius), right = Math.ceil(center + radius);
+        let sum = 0, tapCount = 0; const off = dst * maxTaps;
+        for (let src = left; src <= right; src++){
+          const w = kernelFn((center - src) / filterScale);
+          if (w !== 0){ const cs = src < 0 ? 0 : (src >= srcSize ? srcSize - 1 : src); indices[off+tapCount]=cs; weights[off+tapCount]=w; sum+=w; tapCount++; }
+        }
+        if (sum !== 0) for (let t = 0; t < tapCount; t++) weights[off+t] /= sum;
+        counts[dst] = tapCount;
+      }
+      return { indices, weights, counts, maxTaps };
+    }
+    function clampByte(v){ return v < 0 ? 0 : (v > 255 ? 255 : (v + 0.5) | 0); }
+
+    function preprocessLowRes(rgba, width, height, denoiseStrength, fixColor){
+      const out = new Uint8ClampedArray(rgba);
+      if (denoiseStrength > 0.02){
+        const copy = new Uint8ClampedArray(out);
+        const sigmaColor = 14 + denoiseStrength * 44;
+        const inv2s = -0.5 / (sigmaColor * sigmaColor);
+        const sw = [0.075,0.124,0.075,0.124,0.204,0.124,0.075,0.124,0.075];
+        for (let y = 1; y < height - 1; y++){
+          for (let x = 1; x < width - 1; x++){
+            const cIdx = (y*width+x)*4;
+            const cr = copy[cIdx], cg = copy[cIdx+1], cb = copy[cIdx+2];
+            let sR=0,sG=0,sB=0,wT=0,k=0;
+            for (let dy=-1; dy<=1; dy++){
+              const ro = (y+dy)*width*4;
+              for (let dx=-1; dx<=1; dx++){
+                const ni = ro + (x+dx)*4;
+                const dr = copy[ni]-cr, dg = copy[ni+1]-cg, db = copy[ni+2]-cb;
+                const w = sw[k++] * Math.exp((dr*dr+dg*dg+db*db)*inv2s);
+                sR+=copy[ni]*w; sG+=copy[ni+1]*w; sB+=copy[ni+2]*w; wT+=w;
+              }
+            }
+            const iw = 1/wT;
+            out[cIdx]=clampByte(sR*iw); out[cIdx+1]=clampByte(sG*iw); out[cIdx+2]=clampByte(sB*iw);
+          }
+        }
+      }
+      if (fixColor){
+        const total = width * height;
+        const loT = Math.floor(total * 0.015), hiT = Math.floor(total * 0.985);
+        for (let c = 0; c < 3; c++){
+          const hist = new Uint32Array(256);
+          for (let i = c; i < out.length; i += 4) hist[out[i]]++;
+          let acc = 0, lo = 0, hi = 255;
+          for (let v = 0; v < 256; v++){ acc += hist[v]; if (acc >= loT){ lo = v; break; } }
+          acc = 0;
+          for (let v = 0; v < 256; v++){ acc += hist[v]; if (acc >= hiT){ hi = v; break; } }
+          const span = hi - lo;
+          if (span > 28 && span < 245){
+            const sc = 255.0 / span;
+            for (let i = c; i < out.length; i += 4){ const st = (out[i] - lo) * sc; out[i] = clampByte(out[i]*0.35 + st*0.65); }
+          }
+        }
+      }
+      return out;
+    }
+
+    function resampleSeparable(srcRgba, srcW, srcH, dstW, dstH, useBicubic){
+      const horiz = buildContributorTable(srcW, dstW, useBicubic);
+      const temp = new Float32Array(srcH * dstW * 3);
+      const hT = horiz.maxTaps;
+      for (let y = 0; y < srcH; y++){
+        const sr = y * srcW * 4, tr = y * dstW * 3;
+        for (let dx = 0; dx < dstW; dx++){
+          const taps = horiz.counts[dx], base = dx * hT;
+          let r=0,g=0,b=0;
+          for (let t = 0; t < taps; t++){
+            const pi = sr + horiz.indices[base+t]*4, w = horiz.weights[base+t];
+            r += srcRgba[pi]*w; g += srcRgba[pi+1]*w; b += srcRgba[pi+2]*w;
+          }
+          temp[tr+dx*3]=r; temp[tr+dx*3+1]=g; temp[tr+dx*3+2]=b;
+        }
+      }
+      const vert = buildContributorTable(srcH, dstH, useBicubic);
+      const dstRgba = new Uint8ClampedArray(dstW*dstH*4);
+      const vT = vert.maxTaps;
+      for (let dy = 0; dy < dstH; dy++){
+        const taps = vert.counts[dy], base = dy * vT, orow = dy * dstW * 4;
+        for (let dx = 0; dx < dstW; dx++){
+          let r=0,g=0,b=0; const col = dx*3;
+          for (let t = 0; t < taps; t++){
+            const ti = vert.indices[base+t]*dstW*3 + col, w = vert.weights[base+t];
+            r += temp[ti]*w; g += temp[ti+1]*w; b += temp[ti+2]*w;
+          }
+          const oi = orow + dx*4;
+          dstRgba[oi]=clampByte(r); dstRgba[oi+1]=clampByte(g); dstRgba[oi+2]=clampByte(b); dstRgba[oi+3]=255;
+        }
+      }
+      return dstRgba;
+    }
+
+    function applyEdgeDirectedSmoothing(rgba, width, height){
+      const src = new Uint8ClampedArray(rgba);
+      const stride = width * 4;
+      for (let y = 1; y < height - 1; y++){
+        const r0=(y-1)*stride, r1=y*stride, r2=(y+1)*stride;
+        for (let x = 1; x < width - 1; x++){
+          const idx = r1 + x*4;
+          const l00=src[r0+(x-1)*4+1], l01=src[r0+x*4+1], l02=src[r0+(x+1)*4+1];
+          const l10=src[r1+(x-1)*4+1], l12=src[r1+(x+1)*4+1];
+          const l20=src[r2+(x-1)*4+1], l21=src[r2+x*4+1], l22=src[r2+(x+1)*4+1];
+          const gx=(l02+2*l12+l22)-(l00+2*l10+l20), gy=(l20+2*l21+l22)-(l00+2*l01+l02);
+          const mag=Math.hypot(gx,gy);
+          if (mag > 28){
+            const tx=-gy/mag, ty=gx/mag, sx=Math.round(tx), sy=Math.round(ty);
+            const pp=(y+sy)*stride+(x+sx)*4, pn=(y-sy)*stride+(x-sx)*4;
+            for (let c=0;c<3;c++){
+              const ae = 0.25*src[pp+c] + 0.5*src[idx+c] + 0.25*src[pn+c];
+              rgba[idx+c] = clampByte(src[idx+c]*0.45 + ae*0.55);
+            }
+          }
+        }
+      }
+    }
+
+    function applyIBPAndTextureSynthesis(hrRgba, refRgba, refW, refH, dstW, dstH, clarity, synthGain, iterations, is8KStage){
+      const residualLr = new Float32Array(refW*refH*3);
+      const gain = 0.42 + clarity*0.72;
+      const scaleX = dstW/refW, scaleY = dstH/refH;
+      for (let iter = 0; iter < iterations; iter++){
+        for (let sy = 0; sy < refH; sy++){
+          const y0 = Math.floor(sy*scaleY), y1 = Math.min(dstH, Math.max(y0+1, Math.floor((sy+1)*scaleY)));
+          for (let sx = 0; sx < refW; sx++){
+            const x0 = Math.floor(sx*scaleX), x1 = Math.min(dstW, Math.max(x0+1, Math.floor((sx+1)*scaleX)));
+            let sR=0,sG=0,sB=0,cnt=0;
+            for (let y = y0; y < y1; y++){
+              const row = y*dstW*4;
+              for (let x = x0; x < x1; x++){ const p=row+x*4; sR+=hrRgba[p]; sG+=hrRgba[p+1]; sB+=hrRgba[p+2]; cnt++; }
+            }
+            const ic = 1/cnt, li4=(sy*refW+sx)*4, li3=(sy*refW+sx)*3;
+            residualLr[li3]=refRgba[li4]-sR*ic; residualLr[li3+1]=refRgba[li4+1]-sG*ic; residualLr[li3+2]=refRgba[li4+2]-sB*ic;
+          }
+        }
+        for (let dy = 0; dy < dstH; dy++){
+          const fy = ((dy+0.5)/scaleY)-0.5;
+          const y0 = Math.max(0, Math.min(refH-1, Math.floor(fy)));
+          const y1 = Math.max(0, Math.min(refH-1, y0+1));
+          const wy = fy - y0;
+          const orow = dy*dstW*4;
+          for (let dx = 0; dx < dstW; dx++){
+            const fx = ((dx+0.5)/scaleX)-0.5;
+            const x0 = Math.max(0, Math.min(refW-1, Math.floor(fx)));
+            const x1 = Math.max(0, Math.min(refW-1, x0+1));
+            const wx = fx - x0;
+            const i00=(y0*refW+x0)*3, i10=(y0*refW+x1)*3, i01=(y1*refW+x0)*3, i11=(y1*refW+x1)*3;
+            const oi = orow + dx*4;
+            for (let c = 0; c < 3; c++){
+              const t = residualLr[i00+c]*(1-wx) + residualLr[i10+c]*wx;
+              const b = residualLr[i01+c]*(1-wx) + residualLr[i11+c]*wx;
+              hrRgba[oi+c] = clampByte(hrRgba[oi+c] + gain*(t*(1-wy) + b*wy));
+            }
+          }
+        }
+      }
+      if (clarity <= 0.01) return;
+      const copy = new Uint8ClampedArray(hrRgba);
+      const stride = dstW * 4;
+      const microS = (0.35 + clarity*1.15) * synthGain;
+      const structS = (is8KStage ? 0.28 : 0.18) * clarity * synthGain;
+      for (let y = 1; y < dstH - 1; y++){
+        const rP=(y-1)*stride, rC=y*stride, rN=(y+1)*stride;
+        for (let x = 1; x < dstW - 1; x++){
+          const idx = rC + x*4, xp=(x-1)*4, xc=x*4, xn=(x+1)*4;
+          for (let c = 0; c < 3; c++){
+            const p00=copy[rP+xp+c], p01=copy[rP+xc+c], p02=copy[rP+xn+c];
+            const p10=copy[rC+xp+c], cen=copy[idx+c], p12=copy[rC+xn+c];
+            const p20=copy[rN+xp+c], p21=copy[rN+xc+c], p22=copy[rN+xn+c];
+            const b1 = (p00+2*p01+p02+2*p10+4*cen+2*p12+p20+2*p21+p22)*0.0625;
+            const b2 = (p01+p10+p12+p21)*0.25;
+            const mF = cen - b1, sF = b1 - b2;
+            const act = Math.abs(mF) + Math.abs(sF);
+            if (act > 1.8){
+              const gate = Math.min(1.35, Math.max(0.25, act/14));
+              const syn = cen + (mF*microS + sF*structS) * gate;
+              let lo = p00; if (p01<lo)lo=p01; if(p02<lo)lo=p02; if(p10<lo)lo=p10; if(cen<lo)lo=cen;
+              if (p12<lo)lo=p12; if(p20<lo)lo=p20; if(p21<lo)lo=p21; if(p22<lo)lo=p22;
+              let hi = p00; if (p01>hi)hi=p01; if(p02>hi)hi=p02; if(p10>hi)hi=p10; if(cen>hi)hi=cen;
+              if (p12>hi)hi=p12; if(p20>hi)hi=p20; if(p21>hi)hi=p21; if(p22>hi)hi=p22;
+              const m = 5;
+              hrRgba[idx+c] = clampByte(Math.max(lo - m, Math.min(hi + m, syn)));
+            }
+          }
+        }
+      }
+    }
+
+    function applyColorGrading(rgba, mode){
+      if (mode === 'preserve') return;
+      const grads = {
+        sepia:  [[0,30,20,10],[0.5,140,110,70],[1,240,220,180]],
+        warm:   [[0,20,15,10],[0.5,140,125,105],[1,250,235,210]],
+        cool:   [[0,10,15,35],[0.5,100,120,150],[1,220,235,250]],
+        split:  [[0,20,25,45],[0.5,130,120,110],[1,250,225,180]],
+      };
+      const g = grads[mode];
+      if (!g) return;
+      const n = rgba.length;
+      for (let i = 0; i < n; i += 4){
+        const lum = (0.299*rgba[i] + 0.587*rgba[i+1] + 0.114*rgba[i+2]) / 255;
+        let c0 = g[0], c1 = g[g.length-1];
+        for (let j = 0; j < g.length-1; j++){
+          if (lum >= g[j][0] && lum <= g[j+1][0]){ c0 = g[j]; c1 = g[j+1]; break; }
+        }
+        const span = Math.max(1e-6, c1[0]-c0[0]);
+        const f = Math.max(0, Math.min(1, (lum - c0[0]) / span));
+        rgba[i]   = clampByte(c0[1] + (c1[1]-c0[1]) * f);
+        rgba[i+1] = clampByte(c0[2] + (c1[2]-c0[2]) * f);
+        rgba[i+2] = clampByte(c0[3] + (c1[3]-c0[3]) * f);
+      }
+    }
+
+    function processFrame(srcBuffer, srcW, srcH, dstW, dstH, opts){
+      const rawSrc = new Uint8ClampedArray(srcBuffer);
+      const cleanLr = preprocessLowRes(rawSrc, srcW, srcH, opts.denoise, opts.restore);
+      const useBicubic = opts.algorithm === 'bicubic';
+      let hr;
+      if (opts.targetTier === '8k'){
+        const midW = opts.midW, midH = opts.midH;
+        let s4 = resampleSeparable(cleanLr, srcW, srcH, midW, midH, useBicubic);
+        if (opts.algorithm === 'edi_ibp') applyEdgeDirectedSmoothing(s4, midW, midH);
+        applyIBPAndTextureSynthesis(s4, cleanLr, srcW, srcH, midW, midH, opts.strength*0.85, opts.synthGain*0.85, opts.ibpPasses, false);
+        hr = resampleSeparable(s4, midW, midH, dstW, dstH, useBicubic);
+        applyIBPAndTextureSynthesis(hr, s4, midW, midH, dstW, dstH, opts.strength, opts.synthGain, Math.max(1, opts.ibpPasses-1), true);
+      } else {
+        hr = resampleSeparable(cleanLr, srcW, srcH, dstW, dstH, useBicubic);
+        if (opts.algorithm === 'edi_ibp') applyEdgeDirectedSmoothing(hr, dstW, dstH);
+        applyIBPAndTextureSynthesis(hr, cleanLr, srcW, srcH, dstW, dstH, opts.strength, opts.synthGain, opts.ibpPasses, false);
+      }
+      if (opts.colorize && opts.colorize !== 'preserve') applyColorGrading(hr, opts.colorize);
+      return hr;
+    }
+
+    self.onmessage = function(e){
+      const m = e.data;
+      if (m.type === 'photo'){
+        self.postMessage({ type: 'progress', pct: 25, stage: 'Filtering Denoise & Color...' });
+        const out = processFrame(m.srcBuffer, m.srcW, m.srcH, m.dstW, m.dstH, m);
+        self.postMessage({ id: m.id, type: 'done', outBuffer: out.buffer, dstW: m.dstW, dstH: m.dstH }, [out.buffer]);
+      } else if (m.type === 'video-frame'){
+        const out = processFrame(m.srcBuffer, m.srcW, m.srcH, m.dstW, m.dstH, m);
+        self.postMessage({ id: m.id, type: 'frame-done', outBuffer: out.buffer, dstW: m.dstW, dstH: m.dstH }, [out.buffer]);
+      }
+    };
+  </script>
+
+  <!-- ============= MAIN SCRIPT ============= -->
+  <script>
+    (function(){
+      const TIER_CONFIG = {
+        '4k': { label: '4K', longEdge: 3840, exactW: 3840, exactH: 2160, mp: '8.3 MP' },
+        '8k': { label: '8K', longEdge: 7680, exactW: 7680, exactH: 4320, mp: '33.2 MP' },
+      };
+
+      // ---- Global state ----
+      const state = {
+        sourceImage: null, sourceFileName: 'vintage_photo',
+        targetTier: '4k', fitMode: 'fit', zoomMode: 'fit',
+        splitPercent: 50, isProcessing: false,
+        worker: null,
+        // Video state
+        videoFile: null, videoTier: '4k',
+        videoProcessing: false, videoFrameId: 0,
+        videoPending: new Map(), videoOutputBlob: null,
+      };
+
+      const $ = (id) => document.getElementById(id);
+      let toastTimer = null;
+      function showToast(msg){
+        const t = $('toast'); $('toast-msg').textContent = msg;
+        t.classList.remove('hidden'); clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.add('hidden'), 3600);
+      }
+
+      // ---- Worker ----
+      function createWorker(){
+        if (state.worker) state.worker.terminate();
+        const blob = new Blob([$('upscale-worker').textContent], { type: 'application/javascript' });
+        state.worker = new Worker(URL.createObjectURL(blob));
+        state.worker.onmessage = function(ev){
+          const m = ev.data;
+          if (m.type === 'progress'){
+            $('progress-bar').style.width = m.pct + '%';
+            $('progress-pct').textContent = m.pct + '%';
+            $('progress-stage').textContent = m.stage;
+          } else if (m.type === 'done'){
+            handlePhotoDone(m);
+          } else if (m.type === 'frame-done'){
+            const pending = state.videoPending.get(m.id);
+            if (pending){ state.videoPending.delete(m.id); pending.resolve(m); }
+          }
+        };
+      }
+      createWorker();
+
+      // ---- Tabs ----
+      $('tab-photo').addEventListener('click', () => {
+        $('panel-photo').classList.remove('hidden'); $('panel-photo').classList.add('grid');
+        $('panel-video').classList.add('hidden'); $('panel-video').classList.remove('grid');
+        $('tab-photo').classList.add('tab-active'); $('tab-photo').classList.remove('bg-slate-950/60');
+        $('tab-video').classList.remove('tab-active'); $('tab-video').classList.add('bg-slate-950/60');
+      });
+      $('tab-video').addEventListener('click', () => {
+        $('panel-video').classList.remove('hidden'); $('panel-video').classList.add('grid');
+        $('panel-photo').classList.add('hidden'); $('panel-photo').classList.remove('grid');
+        $('tab-video').classList.add('tab-active'); $('tab-video').classList.remove('bg-slate-950/60');
+        $('tab-photo').classList.remove('tab-active'); $('tab-photo').classList.add('bg-slate-950/60');
+      });
+
+      // ================= PHOTO =================
+      function updatePhotoTierUI(){
+        const cfg = TIER_CONFIG[state.targetTier];
+        document.querySelectorAll('.tier-btn').forEach(b => {
+          const active = b.dataset.tier === state.targetTier;
+          b.className = active
+            ? 'tier-btn rounded-xl border border-indigo-500/70 bg-indigo-500/15 px-3 py-2.5 text-left transition'
+            : 'tier-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700';
+        });
+        $('mp-badge').textContent = cfg.mp + ' • Memory Safe';
+        $('fit-aspect-title').textContent = `Aspect ${cfg.label} (${cfg.longEdge}px)`;
+        $('fit-aspect-sub').textContent = `Longest edge = ${cfg.longEdge} px`;
+        $('fit-exact-title').textContent = `Exact ${cfg.exactW}×${cfg.exactH}`;
+        $('fit-exact-sub').textContent = state.targetTier === '8k' ? '16:9 8K UHD full frame' : '16:9 4K UHD full frame';
+        $('upscale-btn-text').textContent = `Reconstruct True ${cfg.label} Image`;
+        $('download-png-label').textContent = `Download ${cfg.label} PNG (Lossless)`;
+        $('download-jpg-label').textContent = `Download ${cfg.label} JPEG (96%)`;
+      }
+      updatePhotoTierUI();
+
+      document.querySelectorAll('.tier-btn').forEach(b => b.addEventListener('click', () => { state.targetTier = b.dataset.tier; updatePhotoTierUI(); }));
+      document.querySelectorAll('.fit-btn').forEach(b => b.addEventListener('click', () => {
+        state.fitMode = b.dataset.fit;
+        document.querySelectorAll('.fit-btn').forEach(x => {
+          const active = x.dataset.fit === state.fitMode;
+          x.className = active
+            ? 'fit-btn rounded-xl border border-indigo-500/60 bg-indigo-500/15 px-3 py-2.5 text-left transition'
+            : 'fit-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700';
+        });
+      }));
+      document.querySelectorAll('.algo-card').forEach(card => {
+        card.querySelector('input').addEventListener('change', () => {
+          document.querySelectorAll('.algo-card').forEach(c => {
+            const active = c.querySelector('input').checked;
+            c.className = active
+              ? 'algo-card relative flex cursor-pointer items-start gap-3 rounded-xl border border-indigo-500/70 bg-indigo-500/15 p-3 transition'
+              : 'algo-card relative flex cursor-pointer items-start gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3 transition hover:border-slate-700';
+          });
+        });
+      });
+      document.querySelectorAll('.zoom-btn').forEach(b => b.addEventListener('click', () => {
+        state.zoomMode = b.dataset.zoom;
+        document.querySelectorAll('.zoom-btn').forEach(x => {
+          const active = x.dataset.zoom === state.zoomMode;
+          x.className = active
+            ? 'zoom-btn rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white transition'
+            : 'zoom-btn rounded-lg px-2.5 py-1 text-xs font-medium text-slate-400 transition hover:text-white';
+        });
+        applyZoomDisplay();
+      }));
+
+      $('denoise-strength').addEventListener('input', e => $('denoise-label').textContent = e.target.value + '%');
+      $('restore-strength').addEventListener('input', e => $('strength-label').textContent = e.target.value + '%');
+
+      function createSampleVintagePhoto(){
+        const w = 640, h = 400;
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        const sky = ctx.createLinearGradient(0, 0, 0, h * 0.68);
+        sky.addColorStop(0, '#5a493c'); sky.addColorStop(0.55, '#a88768'); sky.addColorStop(1, '#dfc099');
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#685345'; ctx.beginPath();
+        ctx.moveTo(0, 230); ctx.lineTo(130, 155); ctx.lineTo(270, 210); ctx.lineTo(420, 138);
+        ctx.lineTo(560, 195); ctx.lineTo(w, 172); ctx.lineTo(w, h); ctx.lineTo(0, h);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#332721'; ctx.fillRect(215, 112, 74, 185);
+        ctx.strokeStyle = '#4c3b32'; ctx.lineWidth = 1;
+        for (let by = 118; by < 292; by += 6){
+          ctx.beginPath(); ctx.moveTo(216, by); ctx.lineTo(288, by); ctx.stroke();
+          const sh = ((by/6)%2)*5;
+          for (let bx = 220+sh; bx < 286; bx += 10){ ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx, by+6); ctx.stroke(); }
+        }
+        ctx.fillStyle = '#261d18'; ctx.beginPath();
+        ctx.moveTo(209, 112); ctx.lineTo(252, 46); ctx.lineTo(295, 112); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#efe0c6'; ctx.beginPath(); ctx.arc(252, 148, 21, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#261d18'; ctx.lineWidth = 2; ctx.stroke();
+        for (let a = 0; a < 12; a++){
+          const ang = a*Math.PI/6;
+          ctx.beginPath();
+          ctx.moveTo(252+Math.cos(ang)*15, 148+Math.sin(ang)*15);
+          ctx.lineTo(252+Math.cos(ang)*19, 148+Math.sin(ang)*19);
+          ctx.stroke();
+        }
+        ctx.beginPath(); ctx.moveTo(252,148); ctx.lineTo(252,134); ctx.moveTo(252,148); ctx.lineTo(263,152); ctx.stroke();
+        ctx.fillStyle = '#3e3028'; ctx.fillRect(100, 178, 115, 120); ctx.fillRect(289, 166, 160, 132);
+        for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++){
+          const wx = 306 + col*34, wy = 184 + row*34;
+          ctx.fillStyle = '#d8be96'; ctx.fillRect(wx, wy, 16, 22);
+          ctx.strokeStyle = '#3e3028'; ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.moveTo(wx+8, wy); ctx.lineTo(wx+8, wy+22);
+          ctx.moveTo(wx, wy+11); ctx.lineTo(wx+16, wy+11); ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(38,29,24,0.75)'; ctx.lineWidth = 1.1;
+        ctx.beginPath(); ctx.moveTo(0, 92);
+        ctx.quadraticCurveTo(125, 118, 252, 95);
+        ctx.quadraticCurveTo(445, 132, 640, 104); ctx.stroke();
+        ctx.fillStyle = '#221a15'; ctx.fillRect(0, 294, w, 106);
+        ctx.fillStyle = '#856b50'; ctx.beginPath(); ctx.arc(320, 360, 74, Math.PI, 0); ctx.fill();
+        const id = ctx.getImageData(0, 0, w, h); const d = id.data;
+        let seed = 1337;
+        for (let i = 0; i < d.length; i += 4){
+          seed = (seed * 1664525 + 1013904223) % 4294967296;
+          const g = ((seed/4294967296) - 0.5) * 20;
+          d[i] = Math.min(255, Math.max(0, d[i]*0.88 + 24 + g));
+          d[i+1] = Math.min(255, Math.max(0, d[i+1]*0.85 + 18 + g));
+          d[i+2] = Math.min(255, Math.max(0, d[i+2]*0.76 + 14 + g));
+        }
+        ctx.putImageData(id, 0, 0);
+        const img = new Image();
+        img.onload = () => {
+          state.sourceImage = img; state.sourceFileName = 'heritage_clocktower_1952';
+          onPhotoLoaded(); runPhotoUpscale();
+        };
+        img.src = c.toDataURL('image/png');
+      }
+
+      function onPhotoLoaded(){
+        if (!state.sourceImage) return;
+        $('source-meta').classList.remove('hidden'); $('source-meta').classList.add('flex');
+        $('source-name').textContent = state.sourceFileName;
+        $('source-dims').textContent = `${state.sourceImage.width} × ${state.sourceImage.height} px`;
+        $('stat-in').textContent = `${state.sourceImage.width}×${state.sourceImage.height}`;
+      }
+
+      function computePhotoDims(srcW, srcH, tier = state.targetTier){
+        const cfg = TIER_CONFIG[tier];
+        if (state.fitMode === 'cover') return { dstW: cfg.exactW, dstH: cfg.exactH };
+        const s = cfg.longEdge / Math.max(srcW, srcH);
+        return { dstW: Math.max(1, Math.round(srcW * s)), dstH: Math.max(1, Math.round(srcH * s)) };
+      }
+
+      function extractPhotoPixels(){
+        const sw = state.sourceImage.width, sh = state.sourceImage.height;
+        const c = document.createElement('canvas'); const cx = c.getContext('2d');
+        if (state.fitMode === 'cover'){
+          const tr = 16/9, sr = sw/sh;
+          let sx=0, sy=0, ww=sw, hh=sh;
+          if (sr > tr){ ww = Math.round(sh * tr); sx = Math.floor((sw-ww)/2); }
+          else if (sr < tr){ hh = Math.round(sw / tr); sy = Math.floor((sh-hh)/2); }
+          c.width = ww; c.height = hh;
+          cx.drawImage(state.sourceImage, sx, sy, ww, hh, 0, 0, ww, hh);
+          return { imageData: cx.getImageData(0,0,ww,hh), prepW: ww, prepH: hh, cropRect: {sx,sy,sw:ww,sh:hh} };
+        }
+        c.width = sw; c.height = sh; cx.drawImage(state.sourceImage, 0, 0);
+        return { imageData: cx.getImageData(0,0,sw,sh), prepW: sw, prepH: sh, cropRect: {sx:0,sy:0,sw,sh} };
+      }
+
+      function runPhotoUpscale(){
+        if (!state.sourceImage){ showToast('Please load an image first.'); return; }
+        if (state.isProcessing) return;
+        state.isProcessing = true;
+        const cfg = TIER_CONFIG[state.targetTier];
+        $('upscale-btn').disabled = true;
+        $('upscale-btn-text').textContent = `Reconstructing ${cfg.label}...`;
+        $('progress-container').classList.remove('hidden');
+        $('progress-bar').style.width = '2%'; $('progress-pct').textContent = '2%';
+
+        const algo = document.querySelector('input[name="algorithm"]:checked').value;
+        const restore = $('restore-toggle').checked;
+        const denoise = parseInt($('denoise-strength').value, 10)/100;
+        const strength = parseInt($('restore-strength').value, 10)/100;
+        const ibpPasses = parseInt($('ibp-passes').value, 10);
+        const synthGain = { natural: 0.7, crisp: 1.0, maximum: 1.35 }[$('synthesis-profile').value] || 1.0;
+
+        const { imageData, prepW, prepH, cropRect } = extractPhotoPixels();
+        const mid = computePhotoDims(prepW, prepH, '4k');
+        const { dstW, dstH } = computePhotoDims(prepW, prepH, state.targetTier);
+        const t0 = performance.now();
+
+        state.photoStartTime = t0;
+        state.photoCtx = { imageData, prepW, prepH, cropRect, dstW, dstH, algo, restore, denoise, strength, ibpPasses, synthGain };
+
+        state.worker.postMessage({
+          type: 'photo', id: 'photo-' + Date.now(),
+          srcBuffer: imageData.data.buffer, srcW: prepW, srcH: prepH,
+          midW: mid.dstW, midH: mid.dstH, dstW, dstH,
+          targetTier: state.targetTier, algorithm: algo, restore, denoise, strength,
+          ibpPasses, synthGain, colorize: 'preserve',
+        }, [imageData.data.buffer]);
+      }
+
+      function handlePhotoDone(m){
+        const ctx = state.photoCtx;
+        const elapsed = ((performance.now() - state.photoStartTime)/1000).toFixed(2);
+        const mp = ((m.dstW * m.dstH) / 1e6).toFixed(1);
+
+        const ca = $('canvas-after'); ca.width = m.dstW; ca.height = m.dstH;
+        const cta = ca.getContext('2d');
+        cta.putImageData(new ImageData(new Uint8ClampedArray(m.outBuffer), m.dstW, m.dstH), 0, 0);
+
+        const cb = $('canvas-before'); cb.width = m.dstW; cb.height = m.dstH;
+        const ctb = cb.getContext('2d'); ctb.imageSmoothingEnabled = false;
+        ctb.drawImage(state.sourceImage, ctx.cropRect.sx, ctx.cropRect.sy, ctx.cropRect.sw, ctx.cropRect.sh, 0, 0, m.dstW, m.dstH);
+
+        $('empty-state').classList.add('hidden');
+        $('compare-stage').classList.remove('hidden');
+        $('stat-out-label').textContent = `${TIER_CONFIG[state.targetTier].label} Output:`;
+        $('stat-out').textContent = `${m.dstW}×${m.dstH} (${mp} MP)`;
+        $('stat-time').textContent = `${ctx.algo} (${elapsed}s)`;
+        $('after-badge').textContent = `${TIER_CONFIG[state.targetTier].label} ${ctx.algo} (${m.dstW}×${m.dstH})`;
+
+        applyZoomDisplay(); updateSplitPosition(state.splitPercent);
+
+        $('progress-bar').style.width = '100%'; $('progress-pct').textContent = '100%';
+        $('progress-stage').textContent = `Done in ${elapsed}s`;
+        $('download-png-btn').disabled = false; $('download-jpg-btn').disabled = false;
+        state.isProcessing = false;
+        $('upscale-btn').disabled = false;
+        $('upscale-btn-text').textContent = `Reconstruct True ${TIER_CONFIG[state.targetTier].label} Image`;
+        showToast(`${TIER_CONFIG[state.targetTier].label} image ready in ${elapsed}s`);
+      }
+
+      function applyZoomDisplay(){
+        const ca = $('canvas-after'), cb = $('canvas-before'), stage = $('compare-stage');
+        if (!ca.width || !ca.height) return;
+        const w = ca.width, h = ca.height;
+        const dpr = window.devicePixelRatio || 1;
+        let dW = w, dH = h;
+        if (state.zoomMode === 'fit'){
+          const mw = Math.max(280, $('viewport-wrapper').clientWidth - 24);
+          const mh = Math.max(280, $('viewport-wrapper').clientHeight - 24);
+          const s = Math.min(mw/w, mh/h);
+          dW = Math.round(w*s); dH = Math.round(h*s);
+          ca.style.imageRendering = 'auto'; cb.style.imageRendering = 'pixelated';
+        } else {
+          const mult = parseFloat(state.zoomMode)/dpr;
+          dW = Math.round(w*mult); dH = Math.round(h*mult);
+          ca.style.imageRendering = parseFloat(state.zoomMode) >= 1 ? 'pixelated' : 'auto';
+          cb.style.imageRendering = 'pixelated';
+        }
+        stage.style.width = dW + 'px'; stage.style.height = dH + 'px';
+        ca.style.width = dW + 'px'; ca.style.height = dH + 'px';
+        cb.style.width = dW + 'px'; cb.style.height = dH + 'px';
+      }
+
+      function updateSplitPosition(pct){
+        state.splitPercent = Math.max(0, Math.min(100, pct));
+        $('before-clip').style.width = state.splitPercent + '%';
+        $('split-divider').style.left = state.splitPercent + '%';
+      }
+
+      // ---- Drag Split Slider Handler ----
+      let isDraggingSplit = false;
+      function handleSplitMove(clientX){
+        const stage = $('compare-stage'); if (!stage) return;
+        const rect = stage.getBoundingClientRect();
+        if (rect.width > 0){
+          const p = ((clientX - rect.left) / rect.width) * 100;
+          updateSplitPosition(p);
+        }
+      }
+      $('compare-stage').addEventListener('mousedown', (e) => { isDraggingSplit = true; handleSplitMove(e.clientX); });
+      window.addEventListener('mousemove', (e) => { if (isDraggingSplit) handleSplitMove(e.clientX); });
+      window.addEventListener('mouseup', () => { isDraggingSplit = false; });
+      $('compare-stage').addEventListener('touchstart', (e) => { if (e.touches.length) { isDraggingSplit = true; handleSplitMove(e.touches[0].clientX); } }, { passive: true });
+      window.addEventListener('touchmove', (e) => { if (isDraggingSplit && e.touches.length) handleSplitMove(e.touches[0].clientX); }, { passive: true });
+      window.addEventListener('touchend', () => { isDraggingSplit = false; });
+
+      // ---- Image File Drop / Selection ----
+      $('load-sample-btn').addEventListener('click', createSampleVintagePhoto);
+      $('file-input').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) loadPhotoFile(e.target.files[0]);
+      });
+      const dropZone = $('drop-zone');
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-indigo-500', 'bg-slate-900'); });
+      dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-indigo-500', 'bg-slate-900'); });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('border-indigo-500', 'bg-slate-900');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) loadPhotoFile(e.dataTransfer.files[0]);
+      });
+
+      function loadPhotoFile(file){
+        state.sourceFileName = file.name.replace(/\.[^/.]+$/, "");
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => { state.sourceImage = img; onPhotoLoaded(); showToast(`Loaded image: ${file.name}`); };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+      $('upscale-btn').addEventListener('click', runPhotoUpscale);
+
+      // ---- Photo Download Handlers ----
+      $('download-png-btn').addEventListener('click', () => {
+        const ca = $('canvas-after'); if (!ca || !ca.width) return;
+        const link = document.createElement('a');
+        link.download = `${state.sourceFileName}_upscaled_${state.targetTier}.png`;
+        link.href = ca.toDataURL('image/png');
+        link.click();
+        showToast('Downloaded PNG file');
+      });
+      $('download-jpg-btn').addEventListener('click', () => {
+        const ca = $('canvas-after'); if (!ca || !ca.width) return;
+        const link = document.createElement('a');
+        link.download = `${state.sourceFileName}_upscaled_${state.targetTier}.jpg`;
+        link.href = ca.toDataURL('image/jpeg', 0.96);
+        link.click();
+        showToast('Downloaded 96% Quality JPEG');
+      });
+
+      // ================= VIDEO PIPELINE =================
+      function updateVideoTierUI(){
+        document.querySelectorAll('.vtier-btn').forEach(b => {
+          const active = b.dataset.vtier === state.videoTier;
+          b.className = active
+            ? 'vtier-btn rounded-xl border border-indigo-500/70 bg-indigo-500/15 px-3 py-2.5 text-left transition'
+            : 'vtier-btn rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2.5 text-left transition hover:border-slate-700';
+        });
+      }
+      document.querySelectorAll('.vtier-btn').forEach(b => b.addEventListener('click', () => {
+        state.videoTier = b.dataset.vtier; updateVideoTierUI();
+      }));
+
+      $('video-input').addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) loadVideoFile(e.target.files[0]);
+      });
+      const vDropZone = $('video-drop-zone');
+      vDropZone.addEventListener('dragover', (e) => { e.preventDefault(); vDropZone.classList.add('border-fuchsia-500', 'bg-slate-900'); });
+      vDropZone.addEventListener('dragleave', () => { vDropZone.classList.remove('border-fuchsia-500', 'bg-slate-900'); });
+      vDropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); vDropZone.classList.remove('border-fuchsia-500', 'bg-slate-900');
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) loadVideoFile(e.dataTransfer.files[0]);
+      });
+
+      function loadVideoFile(file){
+        state.videoFile = file;
+        $('video-meta').classList.remove('hidden'); $('video-meta').classList.add('flex');
+        $('video-name').textContent = file.name;
+        const sizeMb = (file.size / (1024*1024)).toFixed(1);
+        $('video-info').textContent = `${sizeMb} MB`;
+        $('video-stat-in').textContent = file.name;
+        $('video-process-btn').disabled = false;
+        showToast(`Video loaded: ${file.name}`);
+      }
+
+      function computeVideoDims(srcW, srcH, tier){
+        const cfg = TIER_CONFIG[tier];
+        const s = cfg.longEdge / Math.max(srcW, srcH);
+        let outW = Math.max(1, Math.round(srcW * s));
+        let outH = Math.max(1, Math.round(srcH * s));
+        if (outW % 2 !== 0) outW++; if (outH % 2 !== 0) outH++;
+        return { outW, outH };
+      }
+
+      $('video-process-btn').addEventListener('click', async () => {
+        if (!state.videoFile || state.videoProcessing) return;
+        state.videoProcessing = true;
+        $('video-process-btn').disabled = true;
+        $('video-process-btn-text').textContent = 'Processing Video Frames...';
+        $('video-progress-container').classList.remove('hidden');
+        $('video-empty-state').classList.add('hidden');
+        $('video-preview').classList.add('hidden');
+        $('video-processing-preview').classList.remove('hidden');
+
+        const vUrl = URL.createObjectURL(state.videoFile);
+        const tempVid = document.createElement('video');
+        tempVid.src = vUrl; tempVid.muted = true; tempVid.playsInline = true;
+        await new Promise((res) => tempVid.onloadedmetadata = res);
+
+        const srcW = tempVid.videoWidth, srcH = tempVid.videoHeight;
+        const duration = Math.min(tempVid.duration || 10, parseFloat($('video-maxdur').value));
+        const frameSkip = parseInt($('video-frameskip').value, 10);
+        const fps = 25;
+        const totalFrames = Math.floor((duration * fps) / frameSkip);
+        const { outW, outH } = computeVideoDims(srcW, srcH, state.videoTier);
+
+        $('video-stat-out').textContent = `${outW}×${outH}`;
+        $('video-stat-frames').textContent = `0 / ${totalFrames}`;
+
+        const cBefore = $('video-preview-before'); cBefore.width = srcW; cBefore.height = srcH;
+        const ctxBefore = cBefore.getContext('2d');
+
+        const cAfter = $('video-preview-after'); cAfter.width = outW; cAfter.height = outH;
+        const ctxAfter = cAfter.getContext('2d');
+
+        const recCanvas = document.createElement('canvas'); recCanvas.width = outW; recCanvas.height = outH;
+        const recCtx = recCanvas.getContext('2d');
+        const stream = recCanvas.captureStream(fps);
+        let mediaRecorder;
+        try { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' }); }
+        catch(e) { mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' }); }
+
+        const chunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        mediaRecorder.start(10);
+
+        const colorizeMode = document.querySelector('input[name="colormode"]:checked').value;
+        const algo = document.querySelector('input[name="algorithm"]:checked').value;
+        const restore = $('restore-toggle').checked;
+        const denoise = parseInt($('denoise-strength').value, 10)/100;
+        const strength = parseInt($('restore-strength').value, 10)/100;
+        const ibpPasses = parseInt($('ibp-passes').value, 10);
+        const synthGain = { natural: 0.7, crisp: 1.0, maximum: 1.35 }[$('synthesis-profile').value] || 1.0;
+
+        const startTime = performance.now();
+        let processedCount = 0;
+
+        for (let frameIdx = 0; frameIdx < totalFrames; frameIdx++){
+          const targetTime = (frameIdx * frameSkip) / fps;
+          tempVid.currentTime = targetTime;
+          await new Promise((res) => tempVid.onseeked = res);
+
+          ctxBefore.drawImage(tempVid, 0, 0, srcW, srcH);
+          const imgData = ctxBefore.getImageData(0, 0, srcW, srcH);
+
+          const frameId = 'vframe-' + (++state.videoFrameId);
+          const framePromise = new Promise((resolve) => state.videoPending.set(frameId, { resolve }));
+
+          const mid = computeVideoDims(srcW, srcH, '4k');
+
+          state.worker.postMessage({
+            type: 'video-frame', id: frameId,
+            srcBuffer: imgData.data.buffer, srcW, srcH,
+            midW: mid.outW, midH: mid.outH, dstW: outW, dstH: outH,
+            targetTier: state.videoTier, algorithm: algo, restore, denoise, strength,
+            ibpPasses, synthGain, colorize: colorizeMode,
+          }, [imgData.data.buffer]);
+
+          const frameResult = await framePromise;
+          const outData = new ImageData(new Uint8ClampedArray(frameResult.outBuffer), outW, outH);
+          ctxAfter.putImageData(outData, 0, 0);
+          recCtx.drawImage(cAfter, 0, 0);
+
+          processedCount++;
+          const pct = Math.round((processedCount / totalFrames) * 100);
+          $('video-progress-bar').style.width = pct + '%';
+          $('video-progress-pct').textContent = pct + '%';
+          $('video-progress-stage').textContent = `Processing Frame ${processedCount} / ${totalFrames}`;
+          $('video-stat-frames').textContent = `${processedCount} / ${totalFrames}`;
+
+          const elapsedSec = (performance.now() - startTime) / 1000;
+          const avgPerFrame = elapsedSec / processedCount;
+          const remainingSec = Math.round((totalFrames - processedCount) * avgPerFrame);
+          $('video-eta').textContent = `ETA: ~${remainingSec}s (${(1/avgPerFrame).toFixed(1)} fps)`;
+        }
+
+        mediaRecorder.stop();
+        await new Promise(r => mediaRecorder.onstop = r);
+        URL.revokeObjectURL(vUrl);
+
+        state.videoOutputBlob = new Blob(chunks, { type: 'video/webm' });
+        const outUrl = URL.createObjectURL(state.videoOutputBlob);
+
+        $('video-processing-preview').classList.add('hidden');
+        const vPreview = $('video-preview'); vPreview.src = outUrl; vPreview.classList.remove('hidden');
+        $('video-download-btn').disabled = false;
+        state.videoProcessing = false;
+        $('video-process-btn').disabled = false;
+        $('video-process-btn-text').textContent = 'Upscale & Colorize Video';
+        showToast('Video processing completed!');
+      });
+
+      $('video-download-btn').addEventListener('click', () => {
+        if (!state.videoOutputBlob) return;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(state.videoOutputBlob);
+        a.download = `upscaled_video_${state.videoTier}.webm`;
+        a.click();
+        showToast('Downloading WebM video');
+      });
+
+      // ================= PYTHON MODAL HANDLERS =================
+      $('open-python-btn').addEventListener('click', () => {
+        $('python-modal').classList.remove('hidden');
+        $('python-modal').classList.add('flex');
+      });
+      $('close-python-btn').addEventListener('click', () => {
+        $('python-modal').classList.add('hidden');
+        $('python-modal').classList.remove('flex');
+      });
+      $('python-modal').addEventListener('click', (e) => {
+        if (e.target === $('python-modal')){
+          $('python-modal').classList.add('hidden');
+          $('python-modal').classList.remove('flex');
+        }
+      });
+
+      $('copy-python-btn').addEventListener('click', () => {
+        const codeText = $('python-code-block').textContent;
+        const ta = document.createElement('textarea');
+        ta.value = codeText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast('Python code copied to clipboard!');
+      });
+
+      window.addEventListener('resize', applyZoomDisplay);
+    })();
+  </script>
+</body>
+</html>
